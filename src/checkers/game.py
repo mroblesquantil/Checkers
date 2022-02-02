@@ -1,7 +1,10 @@
 import numpy as np
 
-from checkers.environment import StateVector
+from checkers.board import StateVector
 from checkers.players import UniformPlayer, CheckersPlayer
+
+from checkers.piece import PieceHelper
+
 from typing import Optional, List, Union, Tuple
 
 
@@ -16,9 +19,9 @@ class CheckersGame:
 	blue_player: CheckersPlayer
 		The blue player.
 	"""
-	def __init__(self, red_player: CheckersPlayer, blue_player: CheckersPlayer):
-		self.red_player = red_player
-		self.blue_player = blue_player
+	def __init__(self, light_player: CheckersPlayer, dark_player: CheckersPlayer):
+		self.light_player = light_player
+		self.dark_player = dark_player
 
 	def simulate_game(
 			self,
@@ -52,19 +55,48 @@ class CheckersGame:
 		turn = 0
 		while True:
 			history.append(current_state)
-			player = self.blue_player if turn % 2 == 0 else self.red_player
-			next_state = player.next_move()
+			player = self.dark_player if current_state.turn == PieceHelper.dark else self.light_player
+			next_state = player.next_move(current_state)
 
 			# if the game is over (i.e., current player has no moves)
 			# or the turn exceeds the maximum number of turns allowed the iteration is stoped.
 			if next_state is None or turn > number_of_moves:
-				winner = turn % 2 == 0
 				break
 			else:
 				current_state = next_state
 			turn += 1
 
+		winner = CheckersGame.decide_winner(current_state)
+
 		return history, winner
+
+	@staticmethod
+	def decide_winner(state):
+		"""
+		Return the winning color.
+
+		Parameters
+		----------
+		state: StateVector
+			Final state of a game.
+
+		Returns
+		-------
+		int:
+			`PieceHelper.dark` if the dark color wins
+			`PieceHelper.light` if the light color wins
+			`PieceHelper.empty_square` if the game ends in a tie
+		"""
+
+		min_ = state[:-1].min()
+		max_ = state[:-1].max()
+
+		if min_ != PieceHelper.empty_square and max_ == PieceHelper.empty_square:
+			return PieceHelper.piece_color(min_)
+		elif max_ != PieceHelper.empty_square and min_ == PieceHelper.empty_square:
+			return PieceHelper.piece_color(max_)
+		else:
+			return PieceHelper.empty_square
 
 	def simulate_games(self, number_of_games: int) -> Tuple[List[List[StateVector]], List[int]]:
 		"""

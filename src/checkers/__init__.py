@@ -1,3 +1,3 @@
-from .environment import *
+from .board import *
 from .game import *
 from .players import *

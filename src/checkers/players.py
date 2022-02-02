@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from checkers.environment import StateVector, StateTransitions
+from checkers.board import StateVector, StateTransitions
+import random as rnd
 
 
 class CheckersPlayer(ABC):
@@ -45,4 +46,6 @@ class UniformPlayer(CheckersPlayer):
 		StateVector:
 			The state in which the game will be after the move of the player.
 		"""
-		pass
+		next_moves = StateTransitions.feasible_next_moves(state)
+		if next_moves:
+			return rnd.choice(next_moves)
